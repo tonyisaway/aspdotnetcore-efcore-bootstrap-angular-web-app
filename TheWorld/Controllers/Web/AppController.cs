@@ -1,27 +1,50 @@
 ﻿namespace TheWorld.Controllers.Web
 {
     using System;
+    using System.Linq;
 
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
 
+    using TheWorld.Models;
     using TheWorld.Services;
     using TheWorld.ViewModels;
 
     public class AppController : Controller
     {
-        private IMailService mailService;
+        private readonly IMailService mailService;
 
-        private IConfigurationRoot config;
+        private readonly IConfigurationRoot config;
 
-        public AppController(IMailService mailService, IConfigurationRoot config)
+        private readonly IWorldRepository repository;
+
+        private ILogger<AppController> logger;
+
+        public AppController(
+            IMailService mailService, 
+            IConfigurationRoot config, 
+            IWorldRepository repository,
+            ILogger<AppController> logger)
         {
             this.mailService = mailService;
             this.config = config;
+            this.repository = repository;
+            this.logger = logger;
         }
+
         public IActionResult Index()
         {
-            return this.View();
+            try
+            {
+                var data = this.repository.GetAllTrips();
+                return this.View(data);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError($"Failed to get trips in index page: {ex.Message}");
+                return this.Redirect("/error");
+            }
         }
 
         public IActionResult Contact()
