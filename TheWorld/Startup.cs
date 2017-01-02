@@ -1,5 +1,7 @@
 ﻿namespace TheWorld
 {
+    using AutoMapper;
+
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
@@ -7,8 +9,11 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
+    using Newtonsoft.Json.Serialization;
+
     using TheWorld.Models;
     using TheWorld.Services;
+    using ViewModels;
 
     public class Startup
     {
@@ -41,9 +46,15 @@
 
             services.AddDbContext<WorldContext>();
             services.AddScoped<IWorldRepository, WorldRepository>();
+
+            services.AddTransient<GeoCoordinatesService>();
             services.AddTransient<WorldContextSeedData>();
             services.AddLogging();
-            services.AddMvc();
+            services.AddMvc().AddJsonOptions(
+                config =>
+                    {
+                        config.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +63,13 @@
             ILoggerFactory loggerFactory,
             WorldContextSeedData seeder)
         {
+            Mapper.Initialize(
+                config =>
+                    {
+                        config.CreateMap<TripViewModel, Trip>().ReverseMap();
+                        config.CreateMap<StopViewModel, Stop>().ReverseMap();
+                    });
+
             if (env.IsEnvironment("Development"))
             {
                 app.UseDeveloperExceptionPage();
