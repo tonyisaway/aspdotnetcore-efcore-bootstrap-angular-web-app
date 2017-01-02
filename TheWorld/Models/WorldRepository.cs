@@ -19,32 +19,9 @@
             this.logger = logger;
         }
 
-        public IEnumerable<Trip> GetAllTrips()
+        public void AddStop(string tripName, Stop stop, string userName)
         {
-            this.logger.LogInformation("Getting All Trips from the Database");
-            return this.context.Trips.ToList();
-        }
-
-        public void AddTrip(Trip trip)
-        {
-            this.context.Trips.Add(trip);
-        }
-
-        public async Task<bool> SaveChangesAsync()
-        {
-            return (await this.context.SaveChangesAsync()) > 0;
-        }
-
-        public Trip GetTripByName(string tripName)
-        {
-            return this.context.Trips
-                .Include(x => x.Stops)
-                .FirstOrDefault(x => x.Name == tripName);
-        }
-
-        public void AddStop(string tripName, Stop stop)
-        {
-            var trip = this.GetTripByName(tripName);
+            var trip = this.GetUserTripByName(tripName, userName);
 
             if (trip == null)
             {
@@ -53,6 +30,40 @@
 
             trip.Stops.Add(stop);
             this.context.Stops.Add(stop);
+        }
+
+        public void AddTrip(Trip trip)
+        {
+            this.context.Trips.Add(trip);
+        }
+
+        public IEnumerable<Trip> GetAllTrips()
+        {
+            this.logger.LogInformation("Getting All Trips from the Database");
+            return this.context.Trips.ToList();
+        }
+
+        public Trip GetTripByName(string tripName)
+        {
+            return this.context.Trips.Include(x => x.Stops).FirstOrDefault(x => x.Name == tripName);
+        }
+
+        public IEnumerable<Trip> GetTripsByUsername(string name)
+        {
+            this.logger.LogInformation("Getting All Trips from the Database");
+            return this.context.Trips.Include(x => x.Stops).Where(x => x.UserName == name).ToList();
+        }
+
+        public Trip GetUserTripByName(string tripName, string userName)
+        {
+            return
+                this.context.Trips.Include(x => x.Stops)
+                    .FirstOrDefault(x => x.UserName == userName && x.Name == tripName);
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return (await this.context.SaveChangesAsync()) > 0;
         }
     }
 }

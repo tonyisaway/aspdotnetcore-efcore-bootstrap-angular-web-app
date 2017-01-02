@@ -6,6 +6,7 @@
 
     using AutoMapper;
 
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
 
@@ -13,6 +14,7 @@
     using ViewModels;
 
     [Route("api/Trips")]
+    [Authorize]
     public class TripsController : Controller
     {
         private IWorldRepository repository;
@@ -29,14 +31,9 @@
         [HttpGet("")]
         public IActionResult Get()
         {
-            //if (true)
-            //{
-            //    return this.BadRequest("Bad things happen");
-            //}
-
             try
             {
-                var results = this.repository.GetAllTrips();
+                var results = this.repository.GetTripsByUsername(this.User.Identity.Name);
                 return this.Ok(Mapper.Map<IEnumerable<TripViewModel>>(results));
             }
             catch (Exception ex)
@@ -54,11 +51,13 @@
             {
                 var trip = Mapper.Map<Trip>(viewModel);
 
+                trip.UserName = this.User.Identity.Name;
+
                 this.repository.AddTrip(trip);
 
                 if (await this.repository.SaveChangesAsync())
                 { 
-                    this.Created($"api/trips/{ trip.Name }", Mapper.Map<TripViewModel>(trip));
+                    return this.Created($"api/trips/{ trip.Name }", Mapper.Map<TripViewModel>(trip));
                 }
                 else
                 {

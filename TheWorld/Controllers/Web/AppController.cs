@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
 
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -34,6 +35,12 @@
         }
 
         public IActionResult Index()
+        {
+            return this.View();
+        }
+
+        [Authorize]
+        public IActionResult Trips()
         {
             try
             {

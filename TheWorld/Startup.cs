@@ -1,10 +1,15 @@
 ﻿namespace TheWorld
 {
+    using System.Threading.Tasks;
+
     using AutoMapper;
 
+    using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -19,7 +24,7 @@
     {
         private readonly IHostingEnvironment env;
 
-        private IConfigurationRoot config;
+        private IConfigurationRoot configuration;
 
         public Startup(IHostingEnvironment env)
         {
@@ -30,14 +35,14 @@
                 .AddJsonFile("config.json")
                 .AddEnvironmentVariables();
 
-            this.config = builder.Build();
+            this.configuration = builder.Build();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(this.config);
+            services.AddSingleton(this.configuration);
 
             if (this.env.IsEnvironment("Development") || this.env.IsEnvironment("Testing"))
             {
@@ -50,16 +55,47 @@
             services.AddTransient<GeoCoordinatesService>();
             services.AddTransient<WorldContextSeedData>();
             services.AddLogging();
-            services.AddMvc().AddJsonOptions(
+            services.AddMvc(
+                    config =>
+                        {
+                            if (this.env.IsProduction())
+                            {
+                                config.Filters.Add(new RequireHttpsAttribute());
+                            }
+                        })
+                .AddJsonOptions(
                 config =>
                     {
                         config.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                     });
+
+            services.AddIdentity<WorldUser, IdentityRole>(
+                config =>
+                    {
+                        config.User.RequireUniqueEmail = true;
+                        config.Password.RequiredLength = 8;
+                        config.Cookies.ApplicationCookie.LoginPath = "/Auth/Login";
+                        config.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents()
+                                                                      {
+                                                                          OnRedirectToLogin = async ctx =>
+                                                                              {
+                                                                                  if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                                                                                  {
+                                                                                      ctx.Response.StatusCode = 401;
+                                                                                  }
+                                                                                  else
+                                                                                  {
+                                                                                      ctx.Response.Redirect(ctx.RedirectUri);
+                                                                                  }
+                                                                                  await Task.Yield();
+                                                                              }
+                                                                      };
+                    }).AddEntityFrameworkStores<WorldContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, 
-            IHostingEnvironment env, 
+        public void Configure(IApplicationBuilder app,
+            IHostingEnvironment env,
             ILoggerFactory loggerFactory,
             WorldContextSeedData seeder)
         {
@@ -81,6 +117,8 @@
             }
 
             app.UseStaticFiles();
+
+            app.UseIdentity();
 
             app.UseMvc(
                 config =>

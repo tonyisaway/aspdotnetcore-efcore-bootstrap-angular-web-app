@@ -5,24 +5,35 @@
     using System.Linq;
     using System.Threading.Tasks;
 
+    using Microsoft.AspNetCore.Identity;
+
     public class WorldContextSeedData
     {
         private readonly WorldContext context;
+        private UserManager<WorldUser> userManager;
 
-        public WorldContextSeedData(WorldContext context)
+        public WorldContextSeedData(WorldContext context, UserManager<WorldUser> userManager )
         {
             this.context = context;
+            this.userManager = userManager;
         }
 
         public async Task EnsureSeedData()
         {
+            if (await this.userManager.FindByEmailAsync("tony@awl.com") == null)
+            {
+                var user = new WorldUser() { UserName = "tony", Email = "tony@awl.com" };
+
+                await this.userManager.CreateAsync(user, "P@ssw0rd!");
+            }
+
             if (!this.context.Trips.Any())
             {
                 var usTrip = new Trip()
                                  {
                                      DateCreated = DateTime.Now,
                                      Name = "US Trip",
-                                     UserName = "",
+                                     UserName = "tony",
                                      Stops =
                                          new List<Stop>()
                                              {
@@ -84,7 +95,7 @@
                                     {
                                         DateCreated = DateTime.Now,
                                         Name = "World Trip",
-                                        UserName = "",
+                                        UserName = "tony",
                                         Stops =
                                             new List<Stop>()
                                                 {

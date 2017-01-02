@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace TheWorld.ViewModels
+﻿namespace TheWorld.ViewModels
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
 
     public class StopViewModel
