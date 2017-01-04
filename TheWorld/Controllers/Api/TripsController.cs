@@ -59,10 +59,8 @@
                 { 
                     return this.Created($"api/trips/{ trip.Name }", Mapper.Map<TripViewModel>(trip));
                 }
-                else
-                {
-                    return this.BadRequest("Failed to save changes to the ");
-                }
+
+                return this.BadRequest("Failed to save changes to the ");
             }
 
             return this.BadRequest("Failed to save the trip");
