@@ -42,16 +42,7 @@
         [Authorize]
         public IActionResult Trips()
         {
-            try
-            {
-                var data = this.repository.GetAllTrips();
-                return this.View(data);
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogError($"Failed to get trips in index page: {ex.Message}");
-                return this.Redirect("/error");
-            }
+            return this.View();
         }
 
         public IActionResult Contact()
