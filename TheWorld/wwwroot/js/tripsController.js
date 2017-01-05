@@ -1,7 +1,10 @@
 ﻿(function () {
     "use strict";
 
-    var tripsController = function ($http) {
+    // Getting the module
+    angular.module("app-trips").controller("tripsController", tripsController);
+
+    function tripsController($http) {
 
         var vm = this;
 
@@ -13,19 +16,19 @@
         vm.isBusy = true;
 
         $http.get("/api/trips")
-            .then(function(response) {
-                    // Success
-                    angular.copy(response.data, vm.trips);
-                },
-                function(error) {
+            .then(function (response) {
+                // Success
+                angular.copy(response.data, vm.trips);
+            },
+                function (error) {
                     // Failure
                     vm.errorMessage = "Failed to load data: " + error;
                 })
-            .finally(function() {
+            .finally(function () {
                 vm.isBusy = false;
             });
 
-        vm.addTrip = function() {
+        vm.addTrip = function () {
 
             vm.isBusy = false;
             vm.errorMessage = "";
@@ -46,8 +49,5 @@
         };
     }
 
-    // Getting the module
-    angular.module("app-trips", [])
-    .controller("tripsController", tripsController);
 
 })();

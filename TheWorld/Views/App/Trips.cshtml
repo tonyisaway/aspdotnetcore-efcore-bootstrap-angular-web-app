@@ -8,17 +8,10 @@
     <script src="~/js/app-trips.js" type="text/javascript"></script>
     <script src="~/js/tripsController.js" type="text/javascript"></script>
 }
-<div>
-    <div id="App2">
-
-        <w3-test-directive></w3-test-directive>
-
-    </div>
-</div>
     <div class="row" ng-app="app-trips">
         <div ng-controller="tripsController as vm" class="col-md-6 col-md-offset-3">
             <div class="text-danger" ng-show="vm.errorMessage">{{ vm.errorMessage }}</div>
-            @*<wait-cursor ng-show="true"></wait-cursor>*@
+            <wait-cursor ng-show="vm.isBusy"></wait-cursor>
             <table class="table table-responsive table-striped">
                 <tr ng-repeat="trip in vm.trips">
                     <td>{{ trip.name }}</td>
